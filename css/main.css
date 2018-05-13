@@ -1,0 +1,40 @@
+#board {
+    position: relative;
+    padding:10px;
+    width:300px;
+    height:300px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: gray;
+}
+
+.row {
+    /* position: absolute; */
+    height: 100px;
+    /* width: 290px; */
+}
+
+.row2 {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+.cell {
+    position:relative;
+    float: left;
+    height: 100px;
+    width: 100px;
+    background-color:lightgray;
+    text-align: center;
+    line-height: 100px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    font-size: 45px;
+    cursor: pointer;
+}
+
+.cell2 {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    width:98px;
+}
