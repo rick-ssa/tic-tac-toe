@@ -51,3 +51,11 @@ function refreshHtmlBoard() {
         }
     }
 }
+
+function resetBord(){
+    for (var i = 0; i < 9; i++) {
+        cellsBoard.getCell(i).content = "";
+    }
+
+    refreshHtmlBoard();
+}
