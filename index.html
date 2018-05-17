@@ -5,13 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="js/class.js"></script>
     <script src="js/application.js"></script>
     <link rel="stylesheet" href="css/main.css">
     <title>tic tac toe</title>
 </head>
 
-<body onload="addCellsEventListener()">
+<body onload="initialSettings()" >
     <!-- game board -->
     <div id="board">
         <div class="row row1">
@@ -29,6 +28,15 @@
             <div class="cell cell2" id = "7"></div>
             <div class="cell cell3" id = "8"></div>
         </div>
+    </div>
+    <div id="controller">
+        <label>Game Mode:</label>
+        <select name="gameMode" id="gameModeSelect">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+        <div><button id="startButton" onclick="startGame();">Start</button></div>
     </div>
 </body>
 
