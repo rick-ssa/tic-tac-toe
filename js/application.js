@@ -54,7 +54,6 @@ var gameController = {
     markedByPlayer2BitMap: 0,
 
     setBitMap: function () {
-        var markedPlayerTurn;
         if (this.isPlayer1Turn) {
             this.markedByPlayer1BitMap = this.markedByPlayer1BitMap |
                 (Math.pow(2,this.board.lastClickedCellIndex));
@@ -78,6 +77,8 @@ var gameController = {
     //possible numbers to win, considering a bit map of 9 bits
     winnerNumbers: [7, 56, 73, 84, 146, 273, 292, 448],
 
+    indexWinnerNumbers: -1,
+
     changePlayerTurn: function () {
         this.isPlayer1Turn = !this.isPlayer1Turn;
     },
@@ -94,14 +95,14 @@ var gameController = {
         }
 
         // check if any possible winner number is in the bit map player
-        var index = this.winnerNumbers.findIndex(
+        this.indexWinnerNumbers = this.winnerNumbers.findIndex(
             function (winnerNumber) {
                 
                 return winnerNumber == (markedTurn & winnerNumber);
             }
         );
 
-        if (index != -1) {
+        if (this.indexWinnerNumbers != -1) {
             whoWin = 0 // active player won
         } else if (this.board.isFull()) {            
             whoWin = 1; // game is tied
@@ -111,11 +112,25 @@ var gameController = {
 
         return callBackFunction(whoWin);
     },
+
+    
     playerMove: function (player1MoveFunction, player2MoveFunction) {
         if (this.isPlayer1Turn) {
             player1MoveFunction();
         } else {
             player2MoveFunction();
+        }
+    },
+
+    paintWinnerCells: function() {
+        var winnerNumber = this.winnerNumbers[this.indexWinnerNumbers];
+        var cellIndex = 0;
+        for(i =0; i < this.board.cellsLength(); i++){
+            if(winnerNumber % 2 != 0) {
+                this.board.getCell(i).style.color = "red";
+            }
+            winnerNumber = winnerNumber>>>1;
+            cellIndex++;
         }
     }
 }
@@ -133,7 +148,7 @@ function initialSettings() {
 function cellClick(elem) {
     gameController.board.clickedCell = elem;
     gameController.board.lastClickedCellIndex = Number(elem.id);
-    gameController.playerMove(player1Move, player2OrComputerMove);
+    gameController.playerMove(playerComputerMoves[0], playerComputerMoves[1]);
 }
 
 function startGame() {
@@ -151,6 +166,7 @@ function endGame(whoWin) {
             } else {
                 alert("Player 2 won!!!");
             }
+            gameController.paintWinnerCells();
             break;
         case 1: //game is tied 
             alert("The game is tied!");
@@ -176,8 +192,7 @@ function getGameModeNumber(gameMode) {
 
 playerComputerMoves = [
     function player1Move() {
-        if (gameController.isGameOn && gameController.isPlayer1Turn
-            && gameController.board.isCellEmpty(gameController.board.lastClickedCellIndex)) {
+        if (allowPlayer1Movement()) {
             gameController.setBitMap();
             gameController.board.clickedCell.innerHTML = "X";
             gameController.checkWinner(endGame);
@@ -186,8 +201,7 @@ playerComputerMoves = [
     },
 
     function player2Move() {
-        if (gameController.isGameOn && !gameController.isPlayer1Turn
-            && gameController.board.isCellEmpty(gameController.board.lastClickedCellIndex)) {
+        if (allowPlayer2Movement()) {
             gameController.setBitMap();
             gameController.board.clickedCell.innerHTML = "O";
             gameController.checkWinner(endGame);
@@ -208,4 +222,13 @@ playerComputerMoves = [
     }
 ]
 
-var player2OrComputerMove = player2Move;
+function allowPlayer1Movement() {
+    return gameController.isGameOn && gameController.isPlayer1Turn
+    && gameController.board.isCellEmpty(gameController.board.lastClickedCellIndex);
+}
+
+function allowPlayer2Movement() {
+    return gameController.isGameOn && !gameController.isPlayer1Turn
+    && gameController.board.isCellEmpty(gameController.board.lastClickedCellIndex);
+}
+
