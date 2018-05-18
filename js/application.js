@@ -70,7 +70,9 @@ var gameController = {
 
     board: new HTMLBoard(),
 
-    playersLength: 1,
+    playersLength: 2,
+
+    isPlayerInMovement: false,
 
     isPlayer1Turn: true,
 
@@ -113,8 +115,8 @@ var gameController = {
         return callBackFunction(whoWin);
     },
 
-
     playerMove: function (player1MoveFunction, player2MoveFunction) {
+        this.isPlayerInMovement === true;
         if (this.isPlayer1Turn) {
             player1MoveFunction();
             if (this.playersLength === 1 && this.isGameOn) {
@@ -123,6 +125,7 @@ var gameController = {
         } else if (this.playersLength === 2) {
             player2MoveFunction();
         }
+        this.isPlayerInMovement === false;
     },
 
     paintWinnerCells: function () {
@@ -151,16 +154,19 @@ function initialSettings() {
 function cellClick(elem) {
     gameController.board.cellFocus = elem;
     gameController.board.indexCellFocus = Number(elem.id);
-    gameController.playerMove(playerComputerMoves[0], playerComputerMoves[3]);
+    if (!gameController.isPlayerInMovement) {
+        gameController.playerMove(playerComputerMoves[0], setPlayAgainst);
+    }
 }
 
 function startGame() {
     gameController.isPlayer1Turn = true;
     gameController.clearBitMap();
     gameController.board.clearBoard();
-    gameController.playersLength = 1; //move this line, it stays here just for test
     gameController.isGameOn = true;
-
+    document.getElementById("startButton").disabled = true;
+    document.getElementById("playerVersus").disabled = true;
+    document.getElementById("gameModeSelect").disabled = true;
 }
 
 function endGame(whoWin) {
@@ -177,7 +183,14 @@ function endGame(whoWin) {
             //TODO;
             break;
     }
-    if (whoWin != 2) { gameController.isGameOn = false; };
+    if (whoWin != 2) {
+        gameController.isGameOn = false;
+        document.getElementById("startButton").disabled = false;
+        document.getElementById("playerVersus").disabled = false;
+        if (gameController.playersLength === 1) {
+            document.getElementById("gameModeSelect").disabled = false;
+        }
+    };
 }
 
 function changeMode(mode) {
@@ -211,16 +224,16 @@ playerComputerMoves = [
     },
 
     function computerEasyMove() {
-        var index =getAnyEmptyIndex();
+        var index = getAnyEmptyIndex();
         makeAMove("O", index);
     },
 
     function computerMediumMove() {
         var index = getIndexToDefend();
-        if (index==-1) {
+        if (index == -1) {
             index = getAnyEmptyIndex();
         }
-        makeAMove("O",index);
+        makeAMove("O", index);
     },
 
     function computerHardMove() {
@@ -241,21 +254,18 @@ function makeAMove(value, index) {
     gameController.board.getCell(index).innerHTML = value;
     gameController.checkWinner(endGame);
     gameController.changePlayerTurn();
-    console.log(getIndexToDefend());
-
 }
 
 function getIndexToDefend() {
     var index;
     var numCheck = 0;
     var arrayPlayer1 = getRepresentativeArrayPlayer(1);
-    console.log(arrayPlayer1);
 
     var emptyIndex;
     var indexesToDefender = [];
 
     // line analyse
-    for (var i = 0; i < 9; i += 3) {
+    for (var i = 0; i < 9; (i += 3)) {
         if (arrayPlayer1[i] + arrayPlayer1[i + 1] + arrayPlayer1[i + 2] == 2) {
             for (j = i; j < (i + 3); j++) {
                 if (arrayPlayer1[j] == 0) {
@@ -284,9 +294,9 @@ function getIndexToDefend() {
 
     // diagonal analyse
 
-    if(arrayPlayer1[0] + arrayPlayer1[4] + arrayPlayer1[8] == 2) {
-        for(var i = 0; i < 9; i += 4) {
-            if(arrayPlayer1[i] == 0) {
+    if (arrayPlayer1[0] + arrayPlayer1[4] + arrayPlayer1[8] == 2) {
+        for (var i = 0; i < 9; i += 4) {
+            if (arrayPlayer1[i] == 0) {
                 if (gameController.board.isCellEmpty(i)) {
                     indexesToDefender.push(i);
                 }
@@ -295,9 +305,9 @@ function getIndexToDefend() {
         }
     }
 
-    if(arrayPlayer1[2] + arrayPlayer1[4] + arrayPlayer1[6] == 2) {
-        for(var i = 2; i < 8; i += 2) {
-            if(arrayPlayer1[i] == 0) {
+    if (arrayPlayer1[2] + arrayPlayer1[4] + arrayPlayer1[6] == 2) {
+        for (var i = 2; i < 8; i += 2) {
+            if (arrayPlayer1[i] == 0) {
                 if (gameController.board.isCellEmpty(i)) {
                     indexesToDefender.push(i);
                 }
@@ -315,7 +325,7 @@ function getIndexToDefend() {
 }
 
 function getIndexToAttack() {
-
+    //TODO
 }
 
 function getRepresentativeArrayPlayer(player) {
@@ -347,3 +357,27 @@ function allowPlayer2Movement(cellIndex) {
         && gameController.board.isCellEmpty(cellIndex);
 }
 
+function setPlayersLength(el) {
+    var gameModeSelect = document.getElementById("gameModeSelect");
+    if (el.value === "player") {
+        gameController.playersLength = 2;
+        gameModeSelect.disabled = true;
+    } else {
+        gameController.playersLength = 1;
+        gameModeSelect.disabled = false;
+    }
+}
+
+function setGameMode(el) {
+    gameController.gameMode = Number(el.value);
+
+}
+
+function setPlayAgainst() {
+
+    if (gameController.playersLength === 2) {
+        playerComputerMoves[1]();
+    } else {
+        playerComputerMoves[gameController.gameMode + 2]();
+    }
+}

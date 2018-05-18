@@ -29,12 +29,19 @@
             <div class="cell cell3" id="8"></div>
         </div>
     </div>
+
     <div id="controller">
+        <label>Player select:</label>
+        <select name="playerVersus" id="playerVersus" onchange="setPlayersLength(this)">
+            <option value="player">player</option>
+            <option value="computer">computer</option>
+        </select>
+        <br/>
         <label>Game Mode:</label>
-        <select name="gameMode" id="gameModeSelect">
-            <option value="Easy">Easy</option>
-            <option value="Medium">Medium</option>
-            <option value="Hard">Hard</option>
+        <select name="gameMode" id="gameModeSelect" onchange="setGameMode(this);" disabled>
+            <option value="0">Easy</option>
+            <option value="1">Medium</option>
+            <option value="2">Hard</option>
         </select>
         <div>
             <button id="startButton" onclick="startGame();">Start</button>
