@@ -39,9 +39,9 @@ var HTMLBoard = (function () {
             return cells.length;
         };
 
-        this.clickedCell;
+        this.cellFocus;
 
-        this.lastClickedCellIndex;
+        this.indexCellFocus;
     }
 })();
 
@@ -53,13 +53,13 @@ var gameController = {
     markedByPlayer1BitMap: 0,
     markedByPlayer2BitMap: 0,
 
-    setBitMap: function () {
+    setBitMap: function (cellIndex) {
         if (this.isPlayer1Turn) {
             this.markedByPlayer1BitMap = this.markedByPlayer1BitMap |
-                (Math.pow(2, this.board.lastClickedCellIndex));
+                (Math.pow(2, cellIndex));
         } else {
             this.markedByPlayer2BitMap = this.markedByPlayer2BitMap |
-                (Math.pow(2, this.board.lastClickedCellIndex));
+                (Math.pow(2, cellIndex));
         }
     },
 
@@ -70,7 +70,7 @@ var gameController = {
 
     board: new HTMLBoard(),
 
-    playVersus: 0,
+    playersLength: 1,
 
     isPlayer1Turn: true,
 
@@ -117,7 +117,10 @@ var gameController = {
     playerMove: function (player1MoveFunction, player2MoveFunction) {
         if (this.isPlayer1Turn) {
             player1MoveFunction();
-        } else {
+            if (this.playersLength === 1 && this.isGameOn) {
+                setTimeout(player2MoveFunction, 500);
+            }
+        } else if (this.playersLength === 2) {
             player2MoveFunction();
         }
     },
@@ -146,14 +149,16 @@ function initialSettings() {
 }
 
 function cellClick(elem) {
-    gameController.board.clickedCell = elem;
-    gameController.board.lastClickedCellIndex = Number(elem.id);
-    gameController.playerMove(playerComputerMoves[0], playerComputerMoves[1]);
+    gameController.board.cellFocus = elem;
+    gameController.board.indexCellFocus = Number(elem.id);
+    gameController.playerMove(playerComputerMoves[0], playerComputerMoves[3]);
 }
 
 function startGame() {
+    gameController.isPlayer1Turn = true;
     gameController.clearBitMap();
     gameController.board.clearBoard();
+    gameController.playersLength = 1; //move this line, it stays here just for test
     gameController.isGameOn = true;
 
 }
@@ -162,14 +167,14 @@ function endGame(whoWin) {
     switch (whoWin) {
         case 0: // active player won
             if (gameController.isPlayer1Turn) {
-                alert("Player 1 won!!!");
+                //TODO;
             } else {
-                alert("Player 2 won!!!");
+                //TODO;
             }
             gameController.paintWinnerCells();
             break;
         case 1: //game is tied 
-            alert("The game is tied!");
+            //TODO;
             break;
     }
     if (whoWin != 2) { gameController.isGameOn = false; };
@@ -192,29 +197,30 @@ function getGameModeNumber(gameMode) {
 
 playerComputerMoves = [
     function player1Move() {
-        if (allowPlayer1Movement()) {
-            gameController.setBitMap();
-            gameController.board.clickedCell.innerHTML = "X";
-            gameController.checkWinner(endGame);
-            gameController.changePlayerTurn();
+        var index = gameController.board.indexCellFocus;
+        if (allowPlayer1Movement(index)) {
+            makeAMove("X", index);
         }
     },
 
     function player2Move() {
-        if (allowPlayer2Movement()) {
-            gameController.setBitMap();
-            gameController.board.clickedCell.innerHTML = "O";
-            gameController.checkWinner(endGame);
-            gameController.changePlayerTurn();
+        var index = gameController.board.indexCellFocus;
+        if (allowPlayer2Movement(index)) {
+            makeAMove("O", index);
         }
     },
 
     function computerEasyMove() {
-        //TODO
+        var index =getAnyEmptyIndex();
+        makeAMove("O", index);
     },
 
     function computerMediumMove() {
-        //TODO
+        var index = getIndexToDefend();
+        if (index==-1) {
+            index = getAnyEmptyIndex();
+        }
+        makeAMove("O",index);
     },
 
     function computerHardMove() {
@@ -222,13 +228,122 @@ playerComputerMoves = [
     }
 ]
 
-function allowPlayer1Movement() {
-    return gameController.isGameOn && gameController.isPlayer1Turn
-        && gameController.board.isCellEmpty(gameController.board.lastClickedCellIndex);
+function getAnyEmptyIndex() {
+    var index = Math.floor(Math.random() * 9);
+    while (!allowPlayer2Movement(index)) {
+        index = Math.floor(Math.random() * 9);
+    }
+    return index;
 }
 
-function allowPlayer2Movement() {
+function makeAMove(value, index) {
+    gameController.setBitMap(index);
+    gameController.board.getCell(index).innerHTML = value;
+    gameController.checkWinner(endGame);
+    gameController.changePlayerTurn();
+    console.log(getIndexToDefend());
+
+}
+
+function getIndexToDefend() {
+    var index;
+    var numCheck = 0;
+    var arrayPlayer1 = getRepresentativeArrayPlayer(1);
+    console.log(arrayPlayer1);
+
+    var emptyIndex;
+    var indexesToDefender = [];
+
+    // line analyse
+    for (var i = 0; i < 9; i += 3) {
+        if (arrayPlayer1[i] + arrayPlayer1[i + 1] + arrayPlayer1[i + 2] == 2) {
+            for (j = i; j < (i + 3); j++) {
+                if (arrayPlayer1[j] == 0) {
+                    if (gameController.board.isCellEmpty(j)) {
+                        indexesToDefender.push(j);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // column analyse
+    for (var i = 0; i < 3; i++) {
+        if (arrayPlayer1[i] + arrayPlayer1[i + 3] + arrayPlayer1[i + 6] == 2) {
+            for (j = i; j < 9; j += 3) {
+                if (arrayPlayer1[j] == 0) {
+                    if (gameController.board.isCellEmpty(j)) {
+                        indexesToDefender.push(j);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // diagonal analyse
+
+    if(arrayPlayer1[0] + arrayPlayer1[4] + arrayPlayer1[8] == 2) {
+        for(var i = 0; i < 9; i += 4) {
+            if(arrayPlayer1[i] == 0) {
+                if (gameController.board.isCellEmpty(i)) {
+                    indexesToDefender.push(i);
+                }
+                break;
+            }
+        }
+    }
+
+    if(arrayPlayer1[2] + arrayPlayer1[4] + arrayPlayer1[6] == 2) {
+        for(var i = 2; i < 8; i += 2) {
+            if(arrayPlayer1[i] == 0) {
+                if (gameController.board.isCellEmpty(i)) {
+                    indexesToDefender.push(i);
+                }
+                break;
+            }
+        }
+    }
+
+    // return 
+    if (indexesToDefender.length > 0) {
+        return indexesToDefender[Math.floor(Math.random() * indexesToDefender.length)];
+    } else {
+        return -1;
+    }
+}
+
+function getIndexToAttack() {
+
+}
+
+function getRepresentativeArrayPlayer(player) {
+    var bitMapMarked;
+    var indexes = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    if (player === 1) {
+        bitMapMarked = gameController.markedByPlayer1BitMap;
+    } else {
+        bitMapMarked = gameController.markedByPlayer2BitMap;
+    }
+
+    for (i = 0; i < 9; i++) {
+        if (bitMapMarked % 2 != 0) {
+            indexes[i] = 1;
+        }
+        bitMapMarked = bitMapMarked >>> 1;
+    }
+
+    return indexes;
+}
+
+function allowPlayer1Movement(cellIndex) {
+    return gameController.isGameOn && gameController.isPlayer1Turn
+        && gameController.board.isCellEmpty(cellIndex);
+}
+
+function allowPlayer2Movement(cellIndex) {
     return gameController.isGameOn && !gameController.isPlayer1Turn
-        && gameController.board.isCellEmpty(gameController.board.lastClickedCellIndex);
+        && gameController.board.isCellEmpty(cellIndex);
 }
 
