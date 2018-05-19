@@ -27,7 +27,8 @@ var HTMLBoard = (function () {
         this.clearBoard = function () {
             for (var i = 0; i < cells.length; i++) {
                 cells[i].innerHTML = "";
-                cells[i].style.color = "black";
+                cells[i].classList.remove("text-danger");
+                cells[i].classList.add("text-dark");
             }
         };
 
@@ -133,7 +134,8 @@ var gameController = {
         var cellIndex = 0;
         for (i = 0; i < this.board.cellsLength(); i++) {
             if (winnerNumber % 2 != 0) {
-                this.board.getCell(i).style.color = "red";
+                this.board.getCell(i).classList.remove("text-dark");
+                this.board.getCell(i).classList.add("text-danger");
             }
             winnerNumber = winnerNumber >>> 1;
             cellIndex++;
