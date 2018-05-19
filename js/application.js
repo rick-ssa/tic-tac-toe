@@ -84,6 +84,13 @@ var gameController = {
 
     changePlayerTurn: function () {
         this.isPlayer1Turn = !this.isPlayer1Turn;
+        if (this.isPlayer1Turn) {
+            changeStatus("Player 1 turn");
+        } else if (gameController.playersLength === 2) {
+            changeStatus("Player 2 turn");
+        } else {
+            changeStatus("Computer turn");
+        }
     },
 
     checkWinner: function (callBackFunction) {
@@ -166,27 +173,32 @@ function startGame() {
     gameController.clearBitMap();
     gameController.board.clearBoard();
     gameController.isGameOn = true;
+    changeClass(document.getElementById("statusContainer"),"alert-danger","alert-info");
     document.getElementById("startButton").disabled = true;
     document.getElementById("playerVersus").disabled = true;
     document.getElementById("gameModeSelect").disabled = true;
+    changeStatus("Player 1 turn");
 }
 
 function endGame(whoWin) {
     switch (whoWin) {
         case 0: // active player won
             if (gameController.isPlayer1Turn) {
-                //TODO;
+                changeStatus("Player 1 won!!!");
+            } else if(gameController.playersLength === 2) {
+                changeStatus("Player 2 won!!!");
             } else {
-                //TODO;
+                changeStatus("Computer won!!!");
             }
             gameController.paintWinnerCells();
             break;
         case 1: //game is tied 
-            //TODO;
+            changeStatus("Game is tied.");
             break;
     }
     if (whoWin != 2) {
         gameController.isGameOn = false;
+        changeClass(document.getElementById("statusContainer"),"alert-info","alert-danger");
         document.getElementById("startButton").disabled = false;
         document.getElementById("playerVersus").disabled = false;
         if (gameController.playersLength === 1) {
@@ -255,7 +267,9 @@ function makeAMove(value, index) {
     gameController.setBitMap(index);
     gameController.board.getCell(index).innerHTML = value;
     gameController.checkWinner(endGame);
-    gameController.changePlayerTurn();
+    if (gameController.isGameOn){
+        gameController.changePlayerTurn();
+    }
 }
 
 function getIndexToDefend() {
@@ -382,4 +396,13 @@ function setPlayAgainst() {
     } else {
         playerComputerMoves[gameController.gameMode + 2]();
     }
+}
+
+function changeStatus(text) {
+    document.getElementById("status").innerHTML = text;
+}
+
+function changeClass(el, removeClass, addClass) {
+    el.classList.remove(removeClass);
+    el.classList.add(addClass);
 }
